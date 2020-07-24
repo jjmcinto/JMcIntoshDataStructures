@@ -25,7 +25,7 @@ def fireLifeguard(strFilePath):
                 getUniquePortionOfFirstPeriodList(loneShifts[i], loneShifts[j]), \
                 getUniquePortionOfFirstPeriodList(loneShifts[j], loneShifts[i]);
         
-	print(i, loneShifts);
+	#print(i, loneShifts);
 	
         #update minimum solo contribution; add solo coverage to coverageByAll
         currLoneCoverage = getCoverage(loneShifts[i]);
@@ -82,6 +82,12 @@ def getUniquePortionOfFirst(in1, in2):
     #print('r', r);
     return r;
 
-print(fireLifeguard('input/JM.in'));            
-#for i in [3,4,5,6,7,8,9,10]:
+#print(fireLifeguard('input/JM.in'));            
+for i in [5,6,7,8,9,10]:
 #    print(fireLifeguard('input/' + str(i) + '.in'));
+    print("i:", i);
+    r = fireLifeguard('input/' + str(i) + '.in');
+    f = open("output/ubuntu" + str(i) + ".out", "w");
+    f.write(str(r));
+    f.close();
+    print("r:", r);

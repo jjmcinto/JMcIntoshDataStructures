@@ -57,9 +57,12 @@ def fireLifeguard(strFilePath):
     return len(dShifts.keys()) - min(soloCoverage);
 
 #print(fireLifeguard('input/JM.in'));
-for i in [1, 2, 3, 4]:
+#for i in [1, 2, 3, 4]:
+for i in [1,5,6,7,8,9,10]:
 #for i in [1,2,3,4,5,6,7,8,9,10]:
+    print("i:", i);
     r = fireLifeguard('input/' + str(i) + '.in');
-    f = open("output/" + str(i) + ".out", "w");
+    f = open("output/ubuntu" + str(i) + ".out", "w");
     f.write(str(r));
     f.close();
+    print("r:", r);
