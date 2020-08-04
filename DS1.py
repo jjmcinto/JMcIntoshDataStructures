@@ -19,18 +19,25 @@ def fireLifeguard(strFilePath):
         allShifts.append(map(int, lines[i+1].strip().split(" ")));
         loneShifts.append([allShifts[i]]);
         
-        #determine unique portion(s) of ith shift
+        #add new coverage to coverageByAll
+        currLoneShift = loneShifts[i];
         for j in range(0, i):
-            loneShifts[i], loneShifts[j] = \
-                getUniquePortionOfFirstPeriodList(loneShifts[i], loneShifts[j]), \
-                getUniquePortionOfFirstPeriodList(loneShifts[j], loneShifts[i]);
-        
-	print(i, loneShifts);
+            currLoneShift = getUniquePortionOfFirstPeriodList(currLoneShift, [allShifts[j]]);
+        #print(currLoneShift);
+        currLoneCoverage = getCoverage(currLoneShift);
+        coverageByAll += currLoneCoverage;
+    
+    for i in range(0, shiftCount):
+        #determine unique portion(s) of ith shift
+        for j in range(0, shiftCount):
+            if j != i:
+                loneShifts[i] = getUniquePortionOfFirstPeriodList(loneShifts[i], [allShifts[j]]);
 	
         #update minimum solo contribution; add solo coverage to coverageByAll
         currLoneCoverage = getCoverage(loneShifts[i]);
         minLoneCoverage = min(minLoneCoverage, currLoneCoverage);
-	coverageByAll += currLoneCoverage;
+        
+    #print("loneShifts:", loneShifts);
         
     #print(allShifts);
     return coverageByAll - minLoneCoverage;
@@ -82,6 +89,8 @@ def getUniquePortionOfFirst(in1, in2):
     #print('r', r);
     return r;
 
-print(fireLifeguard('input/JM.in'));            
-#for i in [3,4,5,6,7,8,9,10]:
+for i in range(1, 7):
+#for i in [4,5,6]: #20
+    print(fireLifeguard('input/JM' + str(i) + '.in'));
+#for i in range(1, 11):
 #    print(fireLifeguard('input/' + str(i) + '.in'));

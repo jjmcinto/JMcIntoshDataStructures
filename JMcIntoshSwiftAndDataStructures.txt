@@ -1,0 +1,7 @@
+As the instructions for the setup of the Git repositories are somewhat vague, I set them up to be private and gave access only to catherine.fang@sv.cmu.edu.
+
+Mobile Apps Assignment Repository URL (includes video, JMcIntoshSwiftOrientation2020.mp4):
+https://github.com/jjmcinto/JMcIntoshOrientationIOS
+
+Data Structures Assignment Repository URL:
+https://github.com/jjmcinto/JMcIntoshDataStructures
