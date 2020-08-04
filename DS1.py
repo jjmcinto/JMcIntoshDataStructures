@@ -93,4 +93,9 @@ for i in range(1, 7):
 #for i in [4,5,6]: #20
     print(fireLifeguard('input/JM' + str(i) + '.in'));
 #for i in range(1, 11):
-#    print(fireLifeguard('input/' + str(i) + '.in'));
+#    print("i:", i);
+#    r = fireLifeguard('input/' + str(i) + '.in');
+#    f = open("output/ubuntu" + str(i) + ".out", "w");
+#    f.write(str(r));
+#    f.close();
+#    print("r:", r);
