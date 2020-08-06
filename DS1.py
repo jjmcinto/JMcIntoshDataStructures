@@ -27,18 +27,23 @@ def fireLifeguard(strFilePath):
         currLoneCoverage = getCoverage(currLoneShift);
         coverageByAll += currLoneCoverage;
     
+    strOut = "";
     for i in range(0, shiftCount):
         #determine unique portion(s) of ith shift
         for j in range(0, shiftCount):
             if j != i:
                 loneShifts[i] = getUniquePortionOfFirstPeriodList(loneShifts[i], [allShifts[j]]);
-	
+	#print(str(i) + ":", loneShifts[i]);
+	strOut += str(i) + ": " + str(loneShifts[i]) + "\n";
         #update minimum solo contribution; add solo coverage to coverageByAll
         currLoneCoverage = getCoverage(loneShifts[i]);
         minLoneCoverage = min(minLoneCoverage, currLoneCoverage);
         
-    #print("loneShifts:", loneShifts);
-        
+    f = open("output/DS1" + strFilePath[6:-3] + ".out", "w");
+    #print("strOut:", strOut);
+    f.write(strOut);
+    f.close();
+
     #print(allShifts);
     return coverageByAll - minLoneCoverage;
     
@@ -89,10 +94,12 @@ def getUniquePortionOfFirst(in1, in2):
     #print('r', r);
     return r;
 
-for i in range(1, 7):
+#for i in range(1, 10):
 #for i in [4,5,6]: #20
-    print(fireLifeguard('input/JM' + str(i) + '.in'));
-#for i in range(1, 11):
+#    print(fireLifeguard('input/JM' + str(i) + '.in'));
+#for i in [1]:
+for i in range(1,11):
+    print(str(i) + ":", fireLifeguard('input/' + str(i) + '.in'));
 #    print("i:", i);
 #    r = fireLifeguard('input/' + str(i) + '.in');
 #    f = open("output/ubuntu" + str(i) + ".out", "w");

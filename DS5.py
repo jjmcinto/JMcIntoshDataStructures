@@ -27,7 +27,24 @@ def fireLifeguard(strFilePath):
             segments = updateAffected(currShift, toUpdate, segments);
             #print("updated segments:", segments);
         #print("segments:", segments);
+    	
+	#create map of periods of solo coverage
+	d = {};
+	for i in range(-1, shiftCount): #initialize
+	    d[i] = [];
+	for seg in segments: #populate
+            d[seg[0]].append(seg[1]);
+	
+	#for each lifeguard
+	#print("solo coverage for each lifeguard:");
+	strOut = "";
+    	for i in range(0, shiftCount): #print list of periods of solo coverage
+            strOut += str(i) + ": " + str(d[i]) + "\n";
             
+        f = open("output/DS5" + strFilePath[6:-3] + ".out", "w");
+        f.write(strOut);
+        f.close();
+    
     coverageByAll, minSoloCoverage = summarizeSegments(segments, shiftCount);
     return coverageByAll - minSoloCoverage;
 
@@ -213,8 +230,8 @@ def summarizeSegments(segments, shiftCount):
 
 
 
-for i in range(1, 7):
-    print(fireLifeguard('input/JM' + str(i) + '.in'));
-#for i in [5]:
-#for i in [1,2,3,4,5,6,7,8,9,10]:
-#    print(str(i) + ":", fireLifeguard('input/' + str(i) + '.in'));
+#for i in range(1, 10):
+#    print(fireLifeguard('input/JM' + str(i) + '.in'));
+#for i in [1]:
+for i in range(1,11):
+    print(str(i) + ":", fireLifeguard('input/' + str(i) + '.in'));
