@@ -1,7 +1,21 @@
 As the instructions for the setup of the Git repositories are somewhat vague, I set them up to be private and gave access only to catherine.fang@sv.cmu.edu.
 
-Mobile Apps Assignment Repository URL (includes video, JMcIntoshSwiftOrientation2020.mp4):
-https://github.com/jjmcinto/JMcIntoshOrientationIOS
+Part 1: Mobile Apps Assignment 
+	Repository URL:
+	https://github.com/jjmcinto/JMcIntoshOrientationIOS
+	
+	Video URL:
+	https://www.youtube.com/watch?v=xu9XCUscqJ4
 
-Data Structures Assignment Repository URL:
-https://github.com/jjmcinto/JMcIntoshDataStructures
+Part 2: Data Structures Assignment
+	For my final submission in this part, kindly use DS5.py.
+	
+	Notes: 
+		I attempted multiple approaches to this problem and named them DS1.py through DS5.py. The last, DS5.py, is the best.
+		
+		DS1: On my MacBook Pro, it runs the ten inputs and generates output files over the course of several hours.
+		DS2-4: These either take too long to even try to finish or crash from "Out of Memory" errors on the larger inputs.
+		DS5: On my MacBook Pro, it runs the ten inputs and generates output files within 40 seconds altogether.
+	
+	Repository URL: 
+	https://github.com/jjmcinto/JMcIntoshDataStructures
