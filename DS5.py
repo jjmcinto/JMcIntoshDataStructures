@@ -99,7 +99,7 @@ def updateAffected(currShift, toUpdate, segments):
         
     #if currShift contained by segments[toUpdate[0]] (and hence, affects only that segment)
     elif segments[toUpdate[0]][1][0] <= currShift[1][0] and currShift[1][1] <= segments[toUpdate[0]][1][1]:
-        segments, toUpdate = applyMidShiftSegment(segments, currShift, toUpdate);
+        segments, toUpdate = bisectSegmentWithCurrShift(segments, currShift, toUpdate);
         
     else: #currShift overlaps segments[toUpdate[0]] but is not contained by it
     
@@ -183,8 +183,8 @@ def handlePartlyCoveredFirstSegment(segments, currShift, toUpdate):
     
     return segments, index, toUpdate;
 
-#handle segment completely covered by currShift
-def applyMidShiftSegment(segments, currShift, toUpdate):
+#apply currShift to segment that completely covers it (likely bisecting that segment)
+def bisectSegmentWithCurrShift(segments, currShift, toUpdate):
     #if credit not already shared
     if segments[toUpdate[0]][0] > -1:
         if segments[toUpdate[0]][1][0] < currShift[1][0]: #where applicable, credit left side of segments[toUpdate[0]]
