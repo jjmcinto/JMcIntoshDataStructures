@@ -1,8 +1,4 @@
 #use lists and binary search
-#3
-#5 9
-#1 4
-#3 7
 from math import floor, ceil;
 def fireLifeguard(strFilePath):
     #read data
@@ -11,104 +7,78 @@ def fireLifeguard(strFilePath):
     segments = [];
     minLoneCoverage = float("inf");
     
+    #if input is non-empty
     shiftCount = int(lines[0].strip());
     if shiftCount > 0:
+        
+        #assemble a timeline, tracking who is on solo duty at any given time
         segments = [[0, map(int, lines[1].strip().split(" "))]];
-        #print("segments:", segments);
         for i in range(1, shiftCount):
             #read ith shift
             currShift = [i, map(int, lines[i+1].strip().split(" "))];
             
             #get range of indices of time segments affected
             toUpdate = getAffected(currShift, segments);
-            #print(currShift, "affects", toUpdate);
             
-            #update segments acordingly
+            #update timeline, showing solo and shared credit where appropriate
             segments = updateAffected(currShift, toUpdate, segments);
-            #print("updated segments:", segments);
-        #print("segments:", segments);
-    	
-	#create map of periods of solo coverage
-	d = {};
-	for i in range(-1, shiftCount): #initialize
-	    d[i] = [];
-	for seg in segments: #populate
-            d[seg[0]].append(seg[1]);
-	
-	#for each lifeguard
-	#print("solo coverage for each lifeguard:");
-	strOut = "";
-    	for i in range(0, shiftCount): #print list of periods of solo coverage
-            strOut += str(i) + ": " + str(d[i]) + "\n";
-            
-        f = open("output/DS5" + strFilePath[6:-3] + ".out", "w");
-        f.write(strOut);
-        f.close();
     
+    #return maximum coverage possible after firing one worker
     coverageByAll, minSoloCoverage = summarizeSegments(segments, shiftCount);
     return coverageByAll - minSoloCoverage;
 
+#binary search segments for leftmost or rightmost overlapping segment affected by currShift
+def binarySearchSegments(segments, currShift, range, search):
+    
+    mid = 0;
+    round = ceil; #search==1 => rightmost => 'ceil' function required
+    iAdjust = 1 - 2 * search; #search==0 => +1; search==1 => -1
+    if search == 0:
+        round = floor; #search==0 => leftmost => 'floor' function required
+    
+    while range[0] < range[1]:
+        
+        #get mid-point of range
+        mid = int(range[0] + round(float(range[1] - range[0])/float(2)));
+        
+        #if seeking leftmost and middle segment is on or right of currShift, then eliminate segments[mid+1] and up
+        #if seeking rightmost and middle segment is on or left of currShift, then eliminate segments[mid-1] and down
+        if iAdjust * segments[mid][1][1-search] > iAdjust * currShift[1][search]:
+            range[1-search] = mid; #range: [0, 0]
+        else: #eliminate the other half, as determined by parameter 'search'
+            range[search] = mid + iAdjust;
+            
+    return range[search];
+    
 #employs binary search to find all time segments that overlap currShift
-#returns list of integers, containing bounds of affected indices [first, last+1]
-def getAffected(currShift, segments): #[1, [3,5]], [[0,[1,3]]]
-    lenSegments = len(segments); #1
+#returns list of integers, containing bounds of affected indices inclusive ([first, last])
+def getAffected(currShift, segments):
+    lenSegments = len(segments);
     r = [0, lenSegments-1];
     left = 0;
-    right = lenSegments-1; #0
+    right = lenSegments-1;
     mid = 0;
     
     #search for leftmost segment overlapped by currShift
-    while left < right:
-        mid = int(floor(left + (right - left)/2));
-        #if segments[mid] is on or right of currShift
-        if segments[mid][1][1] > currShift[1][0]: #then segments[mid+1] and up are not the leftmost
-            right = mid;
-        #if segments[mid] is left of currShift (not on or right)
-        else: #segments[mid][1][1] <= currShift[1][0]
-            left = mid+1;
+    left = binarySearchSegments(segments, currShift, [left, right], 0);
     
-    #if segments[left] (note that left==right) is overlapped
+    #if segments[left] is overlapped
     if segmentsOverlap(segments[left][1], currShift[1]):
-        r[0] = left;
+        
+        r[0] = left; #record leftmost segment overlapped by currShift
+        right = binarySearchSegments(segments, currShift, [left, right], 1); #search for rightmost (as it must exist)
+        r[1] = right; #record rightmost segment overlapped by currShift
+        
     else: #nothing overlaps with currShift
         r[0] = -1; #indicate no segments are affected
         
-        #indicate where to insert currShift
+        #indicate where to insert currShift in segments
         if currShift[1][1] < segments[left][1][1]:
             r[1] = left;
         else:
             r[1] = left + 1;
     
-    #if leftmost segment found
-    if r[0] > -1: #search for rightmost (as it must exist)
-        left = 0;
-        right = lenSegments - 1;
-        
-        #search for rightmost segment overlapped by currShift
-        while left < right:
-            mid = left + int(ceil(float(right - left)/2));
-            #if segments[mid] is on or left of currShift
-            if segments[mid][1][0] < currShift[1][1]: #then segments[mid-1] and down are not the rightmost
-                left = mid;
-            #if segments[mid] is right of currShift (not on or left)
-            else: #segments[mid][1][0] >= currShift[1][1]
-                right = mid-1;
-        
-        #if segments[right] (note that left==right) is overlapped
-        if segmentsOverlap(segments[right][1], currShift[1]):
-            r[1] = right;
-        elif segmentsOverlap(segments[left][1], currShift[1]):
-            r[1] = left;
-            right = left;
-        else: #nothing overlaps with currShift
-            r[0] = -1; #indicate no segments are affected
-            
-            #indicate where to insert currShift
-            if currShift[1][1] < segments[right][1][1]:
-                r[1] = right;
-            else:
-                r[1] = right + 1;
-        
+    #return pointers to affected segments or pointer to insertion position
     return r;
     
 def segmentsOverlap(s1, s2):
@@ -120,37 +90,32 @@ def segmentsOverlap(s1, s2):
            s1[1] > s2[0] and s1[1] <= s2[1] or \
            s1[0] < s2[0] and s1[1] > s2[1];
     
-#3
-#5 9
-#1 4
-#3 7
-#updates 'segments' at indices between those in 'toUpdate'
+#updates 'segments' at indices between those in 'toUpdate', inclusive
 def updateAffected(currShift, toUpdate, segments):
-    #indices at ends may only partly overlap
-    #indices in middle are duplicates and have contributor ID updated to '-1'
-    #if adjacent segments have contributor ID of '-1', then combine
     
     #if no overlap
-    if toUpdate[0] == -1:
+    if toUpdate[0] == -1: #insert directly
         segments.insert(toUpdate[1], currShift);
         
-    #currShift contained by segments[toUpdate[0]]
+    #if currShift contained by segments[toUpdate[0]] (and hence, affects only that segment)
     elif segments[toUpdate[0]][1][0] <= currShift[1][0] and currShift[1][1] <= segments[toUpdate[0]][1][1]:
-        if segments[toUpdate[0]][1][0] < currShift[1][0]: #left side
-            segments.insert(0, [segments[toUpdate[0]][0],[segments[toUpdate[0]][1][0], currShift[1][0]]]);
-        segments.insert(1, [-1,[currShift[1][0], currShift[1][1]]]); #overlap
-        if currShift[1][1] < segments[toUpdate[0]][1][1]: #right side
-            segments.insert(2, [segments[toUpdate[0]][0],[currShift[1][1], segments[toUpdate[0]][1][1]]]);
+        #if credit not already shared
+        if segments[toUpdate[0]][0] > -1:
+            if segments[toUpdate[0]][1][0] < currShift[1][0]: #where applicable, credit left side of segments[toUpdate[0]]
+                segments.insert(toUpdate[0], [segments[toUpdate[0]][0],[segments[toUpdate[0]][1][0], currShift[1][0]]]);
+                toUpdate[0] += 1;
+                toUpdate[1] += 1;
+            segments.insert(toUpdate[0], [-1,[currShift[1][0], currShift[1][1]]]); #insert overlapping section
+            if currShift[1][1] < segments[toUpdate[0]+1][1][1]: #where applicable, credit right side of segments[toUpdate[0]]
+                segments[toUpdate[0]+1][1][0] = currShift[1][1];
+            else: #nothing on right side; remove right side of segments[toUpdate[0]]
+                segments.pop(toUpdate[0]+1);
     
-    else:
+    else: #currShift overlaps segments[toUpdate[0]] but is not contained by it
         #initialize counter
         i = toUpdate[0];
         
         #handle first overlapping segment
-        
-        #currShift straddles both sides of segments[toUpdate[0]]
-        #currShift straddles (possibly equals) left edge of segments[toUpdate[0]]
-        #currShift straddles (possibly equals) right edge of segments[toUpdate[0]]
         
         #if there is left edge spillover
         if currShift[1][0] < segments[i][1][0]:
@@ -159,12 +124,14 @@ def updateAffected(currShift, toUpdate, segments):
             i += 1;
             toUpdate[1] += 1; #the range to update just grew by one
             
-        #if currShift starts in the middle of the first shift is affects
+        #if currShift starts within the first shift is affects
         elif segments[i][1][0] < currShift[1][0]:
             segments.insert(i+1, [-1, [currShift[1][0], segments[i][1][1]]]);
             segments[i][1][1] = currShift[1][0];
             i += 1;
             toUpdate[1] += 1; #the range to update just grew by one
+        
+        #else, currShift starts at the same point as the first shift, which is a case the loop can handle directly
         
         #handle central segments
         while i <= toUpdate[1]:
@@ -202,20 +169,23 @@ def updateAffected(currShift, toUpdate, segments):
                 segments[i][1][0] = currShift[1][1];
             
             i += 1;
+    
+    #return updated list of segments
     return segments;
 
-#maps each worker ID to sum of solo work time
-#also adds up time covered by all workers before firing
+#adds up time covered by all workers before firing
+#finds coverage by worker with least solo coverage time
 def summarizeSegments(segments, shiftCount):
-    d = {};
+
     #initialize all solo coverage segments to zero
+    d = {};
     for i in range(-1, shiftCount):
         d[i] = 0;
     
     #get solo totals for each lifeguard (and redundant coverage)
     for s in segments:
         d[s[0]] += s[1][1] - s[1][0];
-    # {-1:3; 0:2; 1:2; 2:1}
+    
     #find:
     #   amount of time covered by all lifeguards currently employed
     #   minimum amount of coverage we can lose by firing one lifeguard
@@ -224,14 +194,15 @@ def summarizeSegments(segments, shiftCount):
     for i in range(0, shiftCount):
         minSoloCoverage = min(minSoloCoverage, d[i]);
         coverageByAll += d[i];
-    
+
     #return
     return coverageByAll, minSoloCoverage;
-
-
-
-#for i in range(1, 10):
-#    print(fireLifeguard('input/JM' + str(i) + '.in'));
+    
+#for each input file
 #for i in [1]:
 for i in range(1,11):
-    print(str(i) + ":", fireLifeguard('input/' + str(i) + '.in'));
+    print(i, fireLifeguard('input/' + str(i) + '.in'));
+    ##record corresponding output
+    #f = open("output/" + str(i) + ".out", "w");
+    #f.write(str(fireLifeguard('input/' + str(i) + '.in')));
+    #f.close();

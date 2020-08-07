@@ -1,8 +1,4 @@
 #use lists - way too slow
-#3
-#5 9
-#1 4
-#3 7
 def fireLifeguard(strFilePath):
     #read data
     input = open(strFilePath, 'r');
@@ -23,7 +19,6 @@ def fireLifeguard(strFilePath):
         currLoneShift = loneShifts[i];
         for j in range(0, i):
             currLoneShift = getUniquePortionOfFirstPeriodList(currLoneShift, [allShifts[j]]);
-        #print(currLoneShift);
         currLoneCoverage = getCoverage(currLoneShift);
         coverageByAll += currLoneCoverage;
     
@@ -33,24 +28,16 @@ def fireLifeguard(strFilePath):
         for j in range(0, shiftCount):
             if j != i:
                 loneShifts[i] = getUniquePortionOfFirstPeriodList(loneShifts[i], [allShifts[j]]);
-	#print(str(i) + ":", loneShifts[i]);
-	strOut += str(i) + ": " + str(loneShifts[i]) + "\n";
+	
         #update minimum solo contribution; add solo coverage to coverageByAll
         currLoneCoverage = getCoverage(loneShifts[i]);
         minLoneCoverage = min(minLoneCoverage, currLoneCoverage);
         
-    f = open("output/DS1" + strFilePath[6:-3] + ".out", "w");
-    #print("strOut:", strOut);
-    f.write(strOut);
-    f.close();
-
-    #print(allShifts);
     return coverageByAll - minLoneCoverage;
     
 def getCoverage(periodList):
     
     #given a list of periods, return duration covered by all periods
-    #print("getCoverage: ", [p[1]-p[0] for p in periodList])
     return sum([p[1]-p[0] for p in periodList])
 
 def getUniquePortionOfFirstPeriodList(list1, list2):
@@ -65,12 +52,12 @@ def getUniquePortionOfFirstPeriodList(list1, list2):
     
 def getUniquePortionOfFirst(in1, in2):
     
+    #given two contiguous time segments, 'prune' and 'compare',
+    #return segments of 'prune' that are not covered by 'compare'
+
     prune = in1;
     compare = in2;
     r = [];
-    #print("prune, compare", prune, compare);    
-    #given two contiguous time segments, 'prune' and 'compare',
-    #return segments of 'prune' that are not covered by 'compare'
     
     #if prune covers left end of compare
     if prune[0] <= compare[0] and compare[0] < prune[1]: #prune from left
@@ -89,20 +76,13 @@ def getUniquePortionOfFirst(in1, in2):
     
     #if prune and compare are completely disjoint
     elif not (compare[0] < prune[0] and prune[1] < compare[1]):
-	r = [prune];
+        r = [prune];
     
-    #print('r', r);
     return r;
 
-#for i in range(1, 10):
-#for i in [4,5,6]: #20
-#    print(fireLifeguard('input/JM' + str(i) + '.in'));
-#for i in [1]:
+#for each input file
 for i in range(1,11):
-    print(str(i) + ":", fireLifeguard('input/' + str(i) + '.in'));
-#    print("i:", i);
-#    r = fireLifeguard('input/' + str(i) + '.in');
-#    f = open("output/ubuntu" + str(i) + ".out", "w");
-#    f.write(str(r));
-#    f.close();
-#    print("r:", r);
+    #record corresponding output
+    f = open("output/" + str(i) + ".out", "w");
+    f.write(str(fireLifeguard('input/' + str(i) + '.in')));
+    f.close();
