@@ -1,3 +1,6 @@
+August 7, 2020
+Everything works and the code has been re-factored. This project is done!
+
 August 6, 2020
 Today, I confirmed:
 	(by sorting) that DS1.py has the correct output for 5.in
