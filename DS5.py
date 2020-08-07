@@ -99,79 +99,105 @@ def updateAffected(currShift, toUpdate, segments):
         
     #if currShift contained by segments[toUpdate[0]] (and hence, affects only that segment)
     elif segments[toUpdate[0]][1][0] <= currShift[1][0] and currShift[1][1] <= segments[toUpdate[0]][1][1]:
-        #if credit not already shared
-        if segments[toUpdate[0]][0] > -1:
-            if segments[toUpdate[0]][1][0] < currShift[1][0]: #where applicable, credit left side of segments[toUpdate[0]]
-                segments.insert(toUpdate[0], [segments[toUpdate[0]][0],[segments[toUpdate[0]][1][0], currShift[1][0]]]);
-                toUpdate[0] += 1;
-                toUpdate[1] += 1;
-            segments.insert(toUpdate[0], [-1,[currShift[1][0], currShift[1][1]]]); #insert overlapping section
-            if currShift[1][1] < segments[toUpdate[0]+1][1][1]: #where applicable, credit right side of segments[toUpdate[0]]
-                segments[toUpdate[0]+1][1][0] = currShift[1][1];
-            else: #nothing on right side; remove right side of segments[toUpdate[0]]
-                segments.pop(toUpdate[0]+1);
-    
+        segments, toUpdate = applyMidShiftSegment(segments, currShift, toUpdate);
+        
     else: #currShift overlaps segments[toUpdate[0]] but is not contained by it
-        #initialize counter
-        i = toUpdate[0];
-        
+    
         #handle first overlapping segment
-        
-        #if there is left edge spillover
-        if currShift[1][0] < segments[i][1][0]:
-            #insert segment for left edge spillover
-            segments.insert(toUpdate[0], [currShift[0],[currShift[1][0], segments[i][1][0]]]);
-            i += 1;
-            toUpdate[1] += 1; #the range to update just grew by one
-            
-        #if currShift starts within the first shift is affects
-        elif segments[i][1][0] < currShift[1][0]:
-            segments.insert(i+1, [-1, [currShift[1][0], segments[i][1][1]]]);
-            segments[i][1][1] = currShift[1][0];
-            i += 1;
-            toUpdate[1] += 1; #the range to update just grew by one
-        
-        #else, currShift starts at the same point as the first shift, which is a case the loop can handle directly
+        segments, i, toUpdate = handlePartlyCoveredFirstSegment(segments, currShift, toUpdate);
         
         #handle central segments
         while i <= toUpdate[1]:
             
             #if ith segment completely covered
             if segments[i][1][1] <= currShift[1][1]: #update the credit to 'shared'
-                #if previous segment has shared credit
-                if i > 0 and segments[i-1][0] == -1:
-                    #extend previous segment over ith
-                    segments[i-1][1][1] = segments[i][1][1];
-                            
-                    #delete ith segment
-                    segments.pop(i);
-                    toUpdate[1] -= 1;
-                    i -= 1;
-                else: #only share credit on ith segment
-                    segments[i][0] = -1;
-        
-                #if currShift goes past end of ith segment and ith is last overlapping or there is a gap between ith and (i+1)th
-                if segments[i][1][1] < currShift[1][1] and (i==toUpdate[1] or (i < len(segments)-1 and segments[i][1][1] < segments[i+1][1][0])):
-                    
-                    #insert new segment
-                    segments.insert(i+1, [currShift[0], [segments[i][1][1], (segments[i+1][1][0] if i<toUpdate[1] else currShift[1][1])]]);
-                    i += 1;
-                    toUpdate[1] += 1;
+                segments, i, toUpdate = handleCompletelyCoveredMidShiftSegment(segments, currShift, i, toUpdate);
                 
             else: #not completely covered => last affected segment
-                
-                #if previous segment has shared credit
-                if i > 0 and segments[i-1][0] == -1: #extend previous segment to end of currShift
-                    segments[i-1][1][1] = currShift[1][1];
-                else: #new shared-credit segment
-                    segments.insert(i, [-1, [segments[i][1][0], currShift[1][1]]]);
-                    i += 1;
-                segments[i][1][0] = currShift[1][1];
+                segments, i, toUpdate = handlePartlyCoveredLastSegment(segments, currShift, i, toUpdate);
             
+            #move to next affected segment
             i += 1;
     
     #return updated list of segments
     return segments;
+
+def handlePartlyCoveredLastSegment(segments, currShift, index, toUpdate):
+    
+    #if previous segment has shared credit
+    if index > 0 and segments[index-1][0] == -1: #extend previous segment to end of currShift
+        segments[index-1][1][1] = currShift[1][1];
+    else: #new shared-credit segment
+        segments.insert(index, [-1, [segments[index][1][0], currShift[1][1]]]);
+        index += 1;
+    segments[index][1][0] = currShift[1][1];
+    
+    return segments, index, toUpdate;
+
+#update segments for the case where a segment is completely covered by currShift
+def handleCompletelyCoveredMidShiftSegment(segments, currShift, index, toUpdate):
+    
+    #if previous segment has shared credit
+    if index > 0 and segments[index-1][0] == -1:
+        #extend previous segment over ith
+        segments[index-1][1][1] = segments[index][1][1];
+                
+        #delete (index)th segment
+        segments.pop(index);
+        toUpdate[1] -= 1;
+        index -= 1;
+    else: #only share credit on ith segment
+        segments[index][0] = -1;
+
+    #if currShift goes past end of (index)th segment and ith is last overlapping or there is a gap between (index)th and (index+1)th
+    if segments[index][1][1] < currShift[1][1] and (index==toUpdate[1] or (index < len(segments)-1 and segments[index][1][1] < segments[index+1][1][0])):
+        
+        #insert new segment
+        segments.insert(index+1, [currShift[0], [segments[index][1][1], (segments[index+1][1][0] if index<toUpdate[1] else currShift[1][1])]]);
+        index += 1;
+        toUpdate[1] += 1;
+    
+    return segments, index, toUpdate;
+
+#handle any portion of timeline left of the first segment completely covered by currShift
+def handlePartlyCoveredFirstSegment(segments, currShift, toUpdate):
+    
+    #initialize counter
+    index = toUpdate[0];
+    
+    #if there is left edge spillover
+    if currShift[1][0] < segments[index][1][0]:
+        #insert segment for left edge spillover
+        segments.insert(toUpdate[0], [currShift[0],[currShift[1][0], segments[index][1][0]]]);
+        index += 1;
+        toUpdate[1] += 1; #the range to update just grew by one
+        
+    #if currShift starts within the first shift is affects
+    elif segments[index][1][0] < currShift[1][0]:
+        segments.insert(index+1, [-1, [currShift[1][0], segments[index][1][1]]]);
+        segments[index][1][1] = currShift[1][0];
+        index += 1;
+        toUpdate[1] += 1; #the range to update just grew by one
+    
+    #else, currShift starts at the same point as the first shift, which is a case the loop can handle directly
+    
+    return segments, index, toUpdate;
+
+#handle segment completely covered by currShift
+def applyMidShiftSegment(segments, currShift, toUpdate):
+    #if credit not already shared
+    if segments[toUpdate[0]][0] > -1:
+        if segments[toUpdate[0]][1][0] < currShift[1][0]: #where applicable, credit left side of segments[toUpdate[0]]
+            segments.insert(toUpdate[0], [segments[toUpdate[0]][0],[segments[toUpdate[0]][1][0], currShift[1][0]]]);
+            toUpdate[0] += 1;
+            toUpdate[1] += 1;
+        segments.insert(toUpdate[0], [-1,[currShift[1][0], currShift[1][1]]]); #insert overlapping section
+        if currShift[1][1] < segments[toUpdate[0]+1][1][1]: #where applicable, credit right side of segments[toUpdate[0]]
+            segments[toUpdate[0]+1][1][0] = currShift[1][1];
+        else: #nothing on right side; remove right side of segments[toUpdate[0]]
+            segments.pop(toUpdate[0]+1);
+    
+    return segments, toUpdate;
 
 #adds up time covered by all workers before firing
 #finds coverage by worker with least solo coverage time
@@ -199,10 +225,9 @@ def summarizeSegments(segments, shiftCount):
     return coverageByAll, minSoloCoverage;
     
 #for each input file
-#for i in [1]:
 for i in range(1,11):
-    print(i, fireLifeguard('input/' + str(i) + '.in'));
-    ##record corresponding output
-    #f = open("output/" + str(i) + ".out", "w");
-    #f.write(str(fireLifeguard('input/' + str(i) + '.in')));
-    #f.close();
+    #print(i, fireLifeguard('input/' + str(i) + '.in'));
+    #record corresponding output
+    f = open("output/" + str(i) + ".out", "w");
+    f.write(str(fireLifeguard('input/' + str(i) + '.in')));
+    f.close();
